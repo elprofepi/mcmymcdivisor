@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego Visual de MCM y MCD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .game-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        input, select, button {
+            font-size: 16px;
+            margin: 5px;
+            padding: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #feedback {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        #numbers {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+        .visual-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .number-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #3498db;
+            margin: 2px;
+            display: inline-block;
+        }
+        .highlight {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Juego Visual de MCM y MCD</h1>
+        <select id="gameType">
+            <option value="mcm">Mínimo Común Múltiplo (MCM)</option>
+            <option value="mcd">Máximo Común Divisor (MCD)</option>
+        </select>
+        <select id="numberCount">
+            <option value="2">2 números</option>
+            <option value="3">3 números</option>
+        </select>
+        <div id="numbers"></div>
+        <div class="visual-container" id="visualContainer"></div>
+        <input type="number" id="answer" placeholder="Tu respuesta">
+        <button onclick="verificarRespuesta()">Comprobar</button>
+        <p id="feedback"></p>
+        <p id="puntuacion"></p>
+    </div>
+
+    <script>
+        let numbers = [];
+        let puntuacion = 0;
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function lcm(a, b) {
+            return (a * b) / gcd(a, b);
+        }
+
+        function generarNumeros() {
+            const count = parseInt(document.getElementById('numberCount').value);
+            numbers = [];
+            for (let i = 0; i < count; i++) {
+                numbers.push(Math.floor(Math.random() * 20) + 1);
+            }
+            document.getElementById('numbers').textContent = `Números: ${numbers.join(', ')}`;
+            visualizarNumeros();
+        }
+
+        function visualizarNumeros() {
+            const container = document.getElementById('visualContainer');
+            container.innerHTML = '';
+            const gameType = document.getElementById('gameType').value;
+
+            numbers.forEach(num => {
+                const numVisual = document.createElement('div');
+                numVisual.className = 'number-visual';
+                
+                const label = document.createElement('p');
+                label.textContent = num;
+                numVisual.appendChild(label);
+
+                const circlesContainer = document.createElement('div');
+                for (let i = 1; i <= (gameType === 'mcm' ? calcularMCM() : num); i++) {
+                    const circle = document.createElement('div');
+                    circle.className = 'circle';
+                    if (gameType === 'mcm' && i % num === 0) {
+                        circle.classList.add('highlight');
+                    } else if (gameType === 'mcd' && num % i === 0) {
+                        circle.classList.add('highlight');
+                    }
+                    circlesContainer.appendChild(circle);
+                }
+                numVisual.appendChild(circlesContainer);
+                container.appendChild(numVisual);
+            });
+        }
+
+        function calcularMCM() {
+            return numbers.reduce((a, b) => lcm(a, b));
+        }
+
+        function calcularMCD() {
+            return numbers.reduce((a, b) => gcd(a, b));
+        }
+
+        function verificarRespuesta() {
+            const gameType = document.getElementById('gameType').value;
+            const respuesta = parseInt(document.getElementById('answer').value);
+            const correcta = gameType === 'mcm' ? calcularMCM() : calcularMCD();
+
+            if (respuesta === correcta) {
+                document.getElementById('feedback').textContent = '¡Correcto! 🎉';
+                document.getElementById('feedback').style.color = 'green';
+                puntuacion++;
+                setTimeout(generarNumeros, 1500);
+            } else {
+                document.getElementById('feedback').textContent = `Incorrecto. La respuesta correcta es ${correcta}.`;
+                document.getElementById('feedback').style.color = 'red';
+            }
+            document.getElementById('puntuacion').textContent = `Puntuación: ${puntuacion}`;
+        }
+
+        document.getElementById('gameType').addEventListener('change', generarNumeros);
+        document.getElementById('numberCount').addEventListener('change', generarNumeros);
+
+        generarNumeros();
+    </script>
+</body>
+</html>
